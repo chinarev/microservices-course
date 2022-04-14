@@ -1,18 +1,12 @@
 package com.example.inventoryservice.repository;
 
 import com.example.inventoryservice.entities.InventoryItem;
-import org.springframework.stereotype.Repository;
+import org.springframework.data.jpa.repository.JpaRepository;
 
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
+import java.util.List;
+import java.util.Optional;
 
-@Repository
-public class InventoryRepository {
-    @PersistenceContext
-    private EntityManager entityManager;
-
-    public InventoryItem getItemById(String id) {
-        return entityManager.find(InventoryItem.class, id);
-    }
-
+public interface InventoryRepository extends JpaRepository<InventoryItem, Long> {
+    Optional<InventoryItem> findByUniqId(String id);
+    List<InventoryItem> findAll();
 }

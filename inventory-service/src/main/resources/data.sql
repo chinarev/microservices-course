@@ -1,0 +1,2 @@
+DROP TABLE INVENTORY;
+CREATE TABLE INVENTORY AS SELECT * FROM CSVREAD('jcpenney_com-ecommerce_sample.csv');
