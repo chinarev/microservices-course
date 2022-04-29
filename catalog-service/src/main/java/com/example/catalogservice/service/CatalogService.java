@@ -9,6 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -25,7 +26,10 @@ public class CatalogService {
         return catalogRepository.findByUniqId(id);
     }
 
-    public List<Product> findProductsBySku(String sku) {
-        return catalogRepository.findBySku(sku);
+    public List<String> findProductsBySku(String sku) {
+        return catalogRepository.findBySku(sku)
+                .stream()
+                .map(Product::getUniqId)
+                .collect(Collectors.toList());
     }
 }

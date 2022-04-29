@@ -8,5 +8,6 @@ import java.util.Optional;
 
 public interface CatalogRepository extends JpaRepository<Product, Long> {
     Optional<Product> findByUniqId(String id);
+
     List<Product> findBySku(String sku);
 }

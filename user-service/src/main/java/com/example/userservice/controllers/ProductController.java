@@ -1,11 +1,11 @@
-package com.example.userservice.web.controllers;
+package com.example.userservice.controllers;
 
 import com.example.userservice.entities.Product;
 import com.example.userservice.service.ProductService;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.netflix.hystrix.contrib.javanica.annotation.HystrixCommand;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -27,12 +27,13 @@ public class ProductController {
     @GetMapping("/api/product/{id}")
     public Optional<Product> getAvailabilityForId(@PathVariable String id) throws JsonProcessingException {
         log.info("Finding product with requested id");
-        return productService.findProductById(id);
+        return productService.getProductInventoryById(id);
     }
 
+    @HystrixCommand
     @GetMapping("/api/product")
     public Optional<List<Product>> getAvailabilityForSku(@RequestParam String sku) throws JsonProcessingException {
         log.info("Finding products for requested sku");
-        return productService.findProductsBySku(sku);
+        return productService.getProductsInventoryBySku(sku);
     }
 }

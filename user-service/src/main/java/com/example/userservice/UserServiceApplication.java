@@ -1,13 +1,16 @@
-package com.example.catalogservice;
+package com.example.userservice;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.client.loadbalancer.LoadBalanced;
+import org.springframework.cloud.netflix.hystrix.EnableHystrix;
 import org.springframework.context.annotation.Bean;
 import org.springframework.web.client.RestTemplate;
 
+@EnableHystrix
 @SpringBootApplication
-public class CatalogServiceApplication {
+public class UserServiceApplication {
+
     @Bean
     @LoadBalanced
     public RestTemplate restTemplate() {
@@ -15,6 +18,7 @@ public class CatalogServiceApplication {
     }
 
     public static void main(String[] args) {
-        SpringApplication.run(CatalogServiceApplication.class, args);
+        SpringApplication.run(UserServiceApplication.class, args);
     }
+
 }
