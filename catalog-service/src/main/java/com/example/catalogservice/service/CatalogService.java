@@ -23,6 +23,12 @@ public class CatalogService {
     }
 
     public Optional<Product> findProductById(String id) {
+        try {
+            Thread.sleep(4000);
+        } catch (InterruptedException e) {
+            log.error("InterruptedException happened! But this is just to simulate circuit breaker behavior");
+            Thread.currentThread().interrupt();
+        }
         return catalogRepository.findByUniqId(id);
     }
 

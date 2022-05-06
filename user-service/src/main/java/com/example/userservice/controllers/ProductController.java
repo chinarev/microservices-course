@@ -30,7 +30,6 @@ public class ProductController {
         return productService.getProductInventoryById(id);
     }
 
-    @HystrixCommand
     @GetMapping("/api/product")
     public Optional<List<Product>> getAvailabilityForSku(@RequestParam String sku) throws JsonProcessingException {
         log.info("Finding products for requested sku");
