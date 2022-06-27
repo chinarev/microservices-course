@@ -21,13 +21,11 @@ public class InventoryController {
 
     @GetMapping("/api/inventory/{id}")
     public ResponseEntity<InventoryDto> getAvailabilityForId(@PathVariable String id) {
-        log.info("Finding inventory for requested id");
         return inventoryService.getAvailabilityForId(id);
     }
 
     @GetMapping("/api/inventory")
     public ResponseEntity<List<InventoryDto>> getAvailability(@RequestParam List<String> uniqIds) {
-        log.info("Finding inventory for requested ids");
         return inventoryService.getAvailabilityForIds(uniqIds);
     }
 }

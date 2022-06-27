@@ -17,6 +17,20 @@ import org.springframework.web.client.RestTemplate;
 import java.util.*;
 import java.util.stream.Collectors;
 
+// ToDo: client side vs Service side, load balancing and service discovery and how my project works;
+// good article: http://kasunpanorama.blogspot.com/2015/11/microservices-in-practice.html
+
+// Todo: threadlocal, MDC read
+// Todo: check zipkin  chain of calls - Zipkin server
+// ToDo: traceId check same id
+// Todo: remove hard coded ports
+// Todo: ETL process
+
+// ToDo: authorization
+// good article: Microservices Authentication and Authorization Solutions
+
+// ToDo: microservices resilience
+
 @Service
 @Transactional
 @Slf4j
@@ -31,6 +45,7 @@ public class ProductService {
   @HystrixCommand(
       fallbackMethod = "getDefaultProductInventoryById",
       commandProperties = {
+        @HystrixProperty(name = "execution.isolation.strategy", value = "SEMAPHORE"),
         @HystrixProperty(name = "execution.isolation.thread.timeoutInMilliseconds", value = "3000"),
         @HystrixProperty(name = "circuitBreaker.requestVolumeThreshold", value = "10"),
         @HystrixProperty(name = "circuitBreaker.sleepWindowInMilliseconds", value = "7000")
@@ -45,15 +60,14 @@ public class ProductService {
     log.info("Sending request to catalog...");
     try {
       ResponseEntity<String> catalogResponseEntity =
-          restTemplate.getForEntity(
-              "http://catalog-service:8181/api/catalog/{id}", String.class, id);
+          restTemplate.getForEntity("http://catalog-service/api/catalog/{id}", String.class, id);
       log.info("Response from catalog: " + catalogResponseEntity.getBody());
 
       if (catalogResponseEntity.getStatusCode() == HttpStatus.OK) {
         log.info("Sending request to inventory...");
         ResponseEntity<String> inventoryResponseEntity =
             restTemplate.getForEntity(
-                "http://inventory-service:8282/api/inventory/{id}", String.class, id);
+                "http://inventory-service/api/inventory/{id}", String.class, id);
         log.info("Response from inventory: " + inventoryResponseEntity.getBody());
 
         return Optional.of(objectMapper.readValue(inventoryResponseEntity.getBody(), Product.class))
@@ -89,9 +103,10 @@ public class ProductService {
   @HystrixCommand(
       fallbackMethod = "getDefaultProductsInventoryBySku",
       commandProperties = {
+        @HystrixProperty(name = "execution.isolation.strategy", value = "SEMAPHORE"),
         @HystrixProperty(name = "execution.isolation.thread.timeoutInMilliseconds", value = "5000"),
         @HystrixProperty(name = "circuitBreaker.requestVolumeThreshold", value = "10"),
-        @HystrixProperty(name = "circuitBreaker.sleepWindowInMilliseconds", value = "5000")
+        @HystrixProperty(name = "circuitBreaker.sleepWindowInMilliseconds", value = "7000")
       },
       threadPoolProperties = {
         @HystrixProperty(name = "coreSize", value = "10"),
@@ -105,7 +120,7 @@ public class ProductService {
     try {
       ResponseEntity<String> catalogResponseEntity =
           restTemplate.getForEntity(
-              "http://catalog-service:8181/api/catalog/range/" + sku, String.class);
+              "http://catalog-service/api/catalog/range/" + sku, String.class);
       log.info("Response from catalog: " + catalogResponseEntity.getBody());
 
       String availableIds =
@@ -115,8 +130,7 @@ public class ProductService {
         log.info("Sending request to inventory...");
         ResponseEntity<String> inventoryResponseEntity =
             restTemplate.getForEntity(
-                "http://inventory-service:8282/api/inventory?uniqIds=" + availableIds,
-                String.class);
+                "http://inventory-service/api/inventory?uniqIds=" + availableIds, String.class);
         log.info("Response from inventory: " + inventoryResponseEntity.getBody());
 
         return Optional.of(

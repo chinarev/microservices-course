@@ -17,49 +17,56 @@ import java.util.concurrent.ThreadLocalRandom;
 @Transactional
 @Slf4j
 public class InventoryService {
-    private final InventoryRepository inventoryRepository;
-    private final Map<String, InventoryDto> items = new HashMap();
+  private final InventoryRepository inventoryRepository;
+  private final Map<String, InventoryDto> items = new HashMap();
 
-    @Autowired
-    public InventoryService(InventoryRepository inventoryRepository) {
-        this.inventoryRepository = inventoryRepository;
+  @Autowired
+  public InventoryService(InventoryRepository inventoryRepository) {
+    this.inventoryRepository = inventoryRepository;
+  }
+
+  public void generateAvailability() {
+    List<InventoryItem> data = inventoryRepository.findAll();
+    for (InventoryItem item : data) {
+      InventoryDto inventoryDto =
+          new InventoryDto(
+              item.getUniqId(),
+              item.getSku(),
+              item.getNameTitle(),
+              ThreadLocalRandom.current().nextInt(0, 5));
+      items.put(inventoryDto.getUniqId(), inventoryDto);
     }
+  }
 
-    public void generateAvailability() {
-        List<InventoryItem> data = inventoryRepository.findAll();
-        for (InventoryItem item : data) {
-            InventoryDto inventoryDto = new InventoryDto(item.getUniqId(), item.getSku(), item.getNameTitle(), ThreadLocalRandom.current().nextInt(0, 5));
-            items.put(inventoryDto.getUniqId(), inventoryDto);
-        }
+  public ResponseEntity<InventoryDto> getAvailabilityForId(String id)
+      throws IllegalArgumentException {
+    generateAvailability();
+
+    log.info("Finding inventory for id: " + id);
+    InventoryDto selectedItem = new InventoryDto();
+    Optional<InventoryItem> inventoryItem = inventoryRepository.findByUniqId(id);
+    if (inventoryItem.isPresent()) {
+      selectedItem = items.get(id);
+    } else {
+      log.info("Item not found with id " + id);
     }
+    return new ResponseEntity<>(selectedItem, HttpStatus.OK);
+  }
 
-    public ResponseEntity<InventoryDto> getAvailabilityForId(String id) throws IllegalArgumentException {
-        generateAvailability();
+  public ResponseEntity<List<InventoryDto>> getAvailabilityForIds(List<String> ids)
+      throws IllegalArgumentException {
+    generateAvailability();
 
-        log.info("Finding inventory for id: " + id);
-        InventoryDto selectedItem = new InventoryDto();
-        Optional<InventoryItem> inventoryItem = inventoryRepository.findByUniqId(id);
-        if (inventoryItem.isPresent()) {
-            selectedItem = items.get(id);
-        } else {
-            log.info("Item not found with id " + id);
-        }
-        return new ResponseEntity<>(selectedItem, HttpStatus.OK);
+    log.info("Finding inventory for ids: " + ids);
+    List<InventoryDto> selectedItems = new ArrayList<>();
+    for (String id : ids) {
+      Optional<InventoryItem> inventoryItem = inventoryRepository.findByUniqId(id);
+      if (inventoryItem.isPresent()) {
+        selectedItems.add(items.get(id));
+      } else {
+        log.info("Item not found with id " + id);
+      }
     }
-
-    public ResponseEntity<List<InventoryDto>> getAvailabilityForIds(List<String> ids) throws IllegalArgumentException {
-        generateAvailability();
-
-        log.info("Finding inventory for ids: " + ids);
-        List<InventoryDto> selectedItems = new ArrayList<>();
-        for (String id : ids) {
-            Optional<InventoryItem> inventoryItem = inventoryRepository.findByUniqId(id);
-            if (inventoryItem.isPresent()) {
-                selectedItems.add(items.get(id));
-            } else {
-                log.info("Item not found with id " + id);
-            }
-        }
-        return new ResponseEntity<>(selectedItems, HttpStatus.OK);
-    }
+    return new ResponseEntity<>(selectedItems, HttpStatus.OK);
+  }
 }
