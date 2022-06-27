@@ -8,5 +8,6 @@ import java.util.Optional;
 
 public interface InventoryRepository extends JpaRepository<InventoryItem, Long> {
     Optional<InventoryItem> findByUniqId(String id);
+
     List<InventoryItem> findAll();
 }
